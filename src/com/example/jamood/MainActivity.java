@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.apache.http.HttpResponse;
@@ -15,7 +16,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.ActionBar;
-import android.app.FragmentTransaction;
+import android.app.ActionBar.Tab;
+import android.content.Context;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.ListFragment;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -32,6 +36,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,9 +53,11 @@ public class MainActivity extends FragmentActivity implements
 		    private int playbackPosition=0;
 		    
 	static String currentSong = null;
-	private Integer songIndex = 3;
+	private Integer songIndex = 0;
 	private Integer currentTab = 0;
 	
+	JSONArray results;
+	static String[] playList = {};
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide
 	 * fragments for each of the sections. We use a
@@ -114,11 +122,17 @@ public class MainActivity extends FragmentActivity implements
 	}
 	
 	private void reloadTag() {
-		DownloadTask task = new DownloadTask();
+		DownloadTask task = new DownloadTask(this);
 		task.execute(new String[] { tracksURL() });
 	}
 	
-	public void onJSONReady(JSONArray results  ){ //JSONArray results
+	public void onJSONReady( JSONArray r ){ //JSONArray results
+		results = r;
+		
+		playCurrentSong();
+	}
+
+	public void playCurrentSong() {
 		JSONObject oneObject = null;
 		String audioURL = null, audioTitle = null;
 		
@@ -133,31 +147,10 @@ public class MainActivity extends FragmentActivity implements
 			audioURL = oneObject.getString("audio");
 			audioTitle = oneObject.getString("name");
 			currentSong = audioTitle;
-			
-			
-		DummySectionFragment fragment = (DummySectionFragment) getSupportFragmentManager().findFragmentByTag(
-			                       "android:switcher:"+R.id.pager+":"+currentTab);
-		if(fragment != null)  // could be null if not instantiated yet
-		{
-			 View fragmentView;
-			 if( (fragmentView = fragment.getView()) != null ) 
-			 {
-				 TextView dummyTextView = (TextView) fragmentView.findViewById(R.id.section_label);
-				 dummyTextView.setText(audioTitle);
-			 }
-        }
-//		View rootView = ViewPager.getChildAt( currentTab );
-//		TextView dummyTextView = (TextView) rootView
-	    
-	    
-	    
-	    showToast(currentSong);
-	    
-//	    DummySectionFragment newFragment = new DummySectionFragment();
-//	    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-//	    transaction.replace(R.id.fragment_container, (Fragment)newFragment);
-	    //transaction.addToBackStack(null);
-//	    transaction.commit();
+			ActionBar ab = getActionBar();
+			ab.setTitle(audioTitle);
+
+			showToast(currentSong);
 
 		} catch (JSONException e1) {
 			// TODO Auto-generated catch block
@@ -170,7 +163,7 @@ public class MainActivity extends FragmentActivity implements
 			e.printStackTrace();
 		}
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -178,27 +171,6 @@ public class MainActivity extends FragmentActivity implements
 		return true;
 	}
 
-	@Override
-	public void onTabSelected(ActionBar.Tab tab,
-			FragmentTransaction fragmentTransaction) {
-		// When the given tab is selected, switch to the corresponding page in
-		// the ViewPager.
-		showToast("onTabSelected");
-		mViewPager.setCurrentItem( tab.getPosition() );
-		currentTAG = TAGS_TABS[ tab.getPosition() ];
-		currentTab = tab.getPosition();
-		reloadTag();
-	}
-
-	@Override
-	public void onTabUnselected(ActionBar.Tab tab,
-			FragmentTransaction fragmentTransaction) {
-	}
-
-	@Override
-	public void onTabReselected(ActionBar.Tab tab,
-			FragmentTransaction fragmentTransaction) {
-	}
 
 	/**
 	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -215,11 +187,22 @@ public class MainActivity extends FragmentActivity implements
 			// getItem is called to instantiate the fragment for the given page.
 			// Return a DummySectionFragment (defined as a static inner class
 			// below) with the page number as its lone argument.
-			Fragment fragment = new DummySectionFragment();
-			Bundle args = new Bundle();
-			args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
+			
+			
+			ListFragment fragment = null;
+//			
+//			if (position == 0) {
+				fragment = new TitlesFragment();
+//			}
+//			else {
+//				DummySectionFragment fragment = new DummySectionFragment();
+				Bundle args = new Bundle();
+				args.putInt( DummySectionFragment.ARG_SECTION_NUMBER, position + 1 );
+				
+				fragment.setArguments(args);
+//			}
 			showToast("FragmentPagerAdapter::(Fragment)getItem");
-			fragment.setArguments(args);
+			
 			return fragment;
 		}
 
@@ -273,6 +256,100 @@ public class MainActivity extends FragmentActivity implements
 		}
 	}
 
+	public static class TitlesFragment extends ListFragment {
+	    boolean mDualPane;
+	    int mCurCheckPosition = 0;
+
+	    @Override
+	    public void onActivityCreated(Bundle savedInstanceState) {
+	        super.onActivityCreated(savedInstanceState);
+
+	        // Populate list with our static array of titles.
+	        setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_activated_1, playList));
+
+//	        // Check to see if we have a frame in which to embed the details
+//	        // fragment directly in the containing UI.
+//	        View detailsFrame = getActivity().findViewById(R.id.details);
+//	        mDualPane = detailsFrame != null && detailsFrame.getVisibility() == View.VISIBLE;
+//
+//	        if (savedInstanceState != null) {
+//	            // Restore last state for checked position.
+//	            mCurCheckPosition = savedInstanceState.getInt("curChoice", 0);
+//	        }
+//
+//	        if (mDualPane) {
+//	            // In dual-pane mode, the list view highlights the selected item.
+//	            getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+//	            // Make sure our UI is in the correct state.
+//	            showDetails(mCurCheckPosition);
+//	        }
+	    }
+
+	    @Override
+	    public void onSaveInstanceState(Bundle outState) {
+	        super.onSaveInstanceState(outState);
+	        outState.putInt("curChoice", mCurCheckPosition);
+	    }
+
+	    @Override
+	    public void onListItemClick(ListView l, View v, int position, long id) {
+	        showDetails(position);
+	    }
+
+	    /**
+	     * Helper function to show the details of a selected item, either by
+	     * displaying a fragment in-place in the current UI, or starting a
+	     * whole new activity in which it is displayed.
+	     */
+	    
+	    void showDetails(int index) {
+	    	MainActivity ma = (MainActivity) getActivity();
+	    	ma.songIndex = index;
+	    	ma.playCurrentSong();
+	    /*
+	    	mCurCheckPosition = index;
+
+	        if (mDualPane) {
+	            // We can display everything in-place with fragments, so update
+	            // the list to highlight the selected item and show the data.
+	            getListView().setItemChecked(index, true);
+
+	            // Check what fragment is currently shown, replace if needed.
+	            DetailsFragment details = (DetailsFragment)
+	                    getFragmentManager().findFragmentById(R.id.details);
+	            if (details == null || details.getShownIndex() != index) {
+	                // Make new fragment to show this selection.
+	                details = DetailsFragment.newInstance(index);
+
+	                // Execute a transaction, replacing any existing fragment
+	                // with this one inside the frame.
+	                FragmentTransaction ft = getFragmentManager().beginTransaction();
+	                if (index == 0) {
+	                    ft.replace(R.id.details, details);
+	                } else {
+	                    ft.replace(R.id.a_item, details);
+	                }
+	                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+	                ft.commit();
+	            }
+
+	        } else {
+	            // Otherwise we need to launch a new activity to display
+	            // the dialog fragment with selected text.
+	            Intent intent = new Intent();
+	            intent.setClass(getActivity(), DetailsActivity.class);
+	            intent.putExtra("index", index);
+	            startActivity(intent);
+	        }
+	        */
+	    }
+	}
+	
+	
+	/* ***************************************************************************
+	 * MEDIA PLAYER
+	 */
+	
 	  private void playAudio(String url) throws Exception
 	    {
 	        killMediaPlayer();
@@ -300,6 +377,12 @@ public class MainActivity extends FragmentActivity implements
 	  }
 	    
 		private class DownloadTask extends AsyncTask<String, Void, JSONArray> {
+			private Context ctx;
+			public DownloadTask(Context context){
+	            super();
+	            this.ctx=context;
+	        }
+			
 			@Override
 			protected JSONArray doInBackground(String... urls) {
 				JSONArray results = null;
@@ -323,8 +406,55 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			protected void onPostExecute(JSONArray results) {
-				//textView.setText(result);]
+				ArrayList<String> stringArrayList = new ArrayList<String>();
+				showToast("onPostExecute");
+				for (int i = 0; i<results.length(); i++ ) {
+					try {
+						String value = results.getJSONObject(i).getString("name");
+						stringArrayList.add( value );
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				playList = stringArrayList.toArray(new String[stringArrayList.size()]);
 				onJSONReady(results);
+				songIndex = 0;
+				TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
+				
+
+				if(fragment != null)  // could be null if not instantiated yet
+				{
+					 fragment.setListAdapter(new ArrayAdapter<String>(this.ctx, android.R.layout.simple_list_item_activated_1, playList));
+//					 View fragmentView;
+//					 if( (fragmentView = fragment.getView()) != null ) 
+//					 {
+//					 
+//					 }
+				}
 			}
+		}
+
+
+		@Override
+		public void onTabReselected(Tab tab, android.app.FragmentTransaction ft) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onTabSelected(Tab tab, android.app.FragmentTransaction ft) {
+			// TODO Auto-generated method stub
+			showToast("onTabSelected");
+			mViewPager.setCurrentItem( tab.getPosition() );
+			currentTAG = TAGS_TABS[ tab.getPosition() ];
+			currentTab = tab.getPosition();
+			reloadTag();
+		}
+
+		@Override
+		public void onTabUnselected(Tab tab, android.app.FragmentTransaction ft) {
+			// TODO Auto-generated method stub
+			
 		}
 }
