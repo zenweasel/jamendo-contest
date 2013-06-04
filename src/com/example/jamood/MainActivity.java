@@ -15,6 +15,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.example.jamood.TrackListAdapter.ViewHolder;
+
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.content.Context;
@@ -57,7 +59,7 @@ public class MainActivity extends FragmentActivity implements
 	private Integer currentTab = 0;
 	
 	JSONArray results;
-	static String[] playList = {};
+	static JSONObject[] playList = {};
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide
 	 * fragments for each of the sections. We use a
@@ -129,6 +131,27 @@ public class MainActivity extends FragmentActivity implements
 	public void onJSONReady( JSONArray r ){ //JSONArray results
 		results = r;
 		
+		ArrayList<JSONObject> stringArrayList = new ArrayList<JSONObject>();
+		showToast("onPostExecute");
+		for (int i = 0; i<results.length(); i++ ) {
+			try {
+				JSONObject value = results.getJSONObject(i);//.getString("name");
+				stringArrayList.add( value );
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		playList = stringArrayList.toArray(new JSONObject[stringArrayList.size()]);
+		songIndex = 0;
+		TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
+		if(fragment != null)  // could be null if not instantiated yet
+		{
+			 fragment.setListAdapter(new TrackListAdapter(this, playList));
+//			 ((TrackListAdapter) fragment.getListView().getAdapter()).setSelectedItem(0);
+//			 fragment.getListView().setItemChecked(songIndex, true);
+		}
+		
 		playCurrentSong();
 	}
 
@@ -137,6 +160,7 @@ public class MainActivity extends FragmentActivity implements
 		String audioURL = null, audioTitle = null;
 		
 		try {
+			// TODO: может быть и null
 			oneObject = results.getJSONObject(songIndex);
 		} catch (JSONException e1) {
 			// TODO Auto-generated catch block
@@ -149,7 +173,9 @@ public class MainActivity extends FragmentActivity implements
 			currentSong = audioTitle;
 			ActionBar ab = getActionBar();
 			ab.setTitle(audioTitle);
-
+			
+			ListView lv = (ListView) findViewById(android.R.id.list);
+			lv.setItemChecked(songIndex, true);
 			showToast(currentSong);
 
 		} catch (JSONException e1) {
@@ -190,19 +216,13 @@ public class MainActivity extends FragmentActivity implements
 			
 			
 			ListFragment fragment = null;
-//			
-//			if (position == 0) {
-				fragment = new TitlesFragment();
-//			}
-//			else {
-//				DummySectionFragment fragment = new DummySectionFragment();
-				Bundle args = new Bundle();
-				args.putInt( "section_number", position + 1 );
-				
-				fragment.setArguments(args);
-//			}
-			showToast("FragmentPagerAdapter::(Fragment)getItem");
-			
+
+			fragment = new TitlesFragment();
+
+			Bundle args = new Bundle();
+			args.putInt( "section_number", position + 1 );	
+			fragment.setArguments(args);
+
 			return fragment;
 		}
 
@@ -231,12 +251,9 @@ public class MainActivity extends FragmentActivity implements
 	 * A dummy fragment representing a section of the app, but that simply
 	 * displays dummy text.
 	 */
-	
+	/*
 	public static class DummySectionFragment extends Fragment {
-		/**
-		 * The fragment argument representing the section number for this
-		 * fragment.
-		 */
+
 	
 		public static final String ARG_SECTION_NUMBER = "section_number";
 
@@ -254,7 +271,7 @@ public class MainActivity extends FragmentActivity implements
 			return rootView;
 		}
 	}
-
+*/
 
 	public static class TitlesFragment extends ListFragment {
 	    boolean mDualPane;
@@ -265,8 +282,10 @@ public class MainActivity extends FragmentActivity implements
 	        super.onActivityCreated(savedInstanceState);
 
 	        // Populate list with our static array of titles.
-	        setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_activated_1, playList));
-
+	        setListAdapter(new TrackListAdapter(getActivity(), playList));
+	        ListView lv = getListView();
+	        //lv.getChildAt(0).setSelected(true);
+	  
 //	        // Check to see if we have a frame in which to embed the details
 //	        // fragment directly in the containing UI.
 //	        View detailsFrame = getActivity().findViewById(R.id.details);
@@ -315,6 +334,12 @@ public class MainActivity extends FragmentActivity implements
 
 	    @Override
 	    public void onListItemClick(ListView l, View v, int position, long id) {
+//	        v.setSelected(true);
+	    	TrackListAdapter ad = (TrackListAdapter) l.getAdapter();
+
+//	    	ad.setSelectedItem(position);
+//	    	ad.notifyDataSetChanged();
+//	    	l.setItemChecked(-1, true);
 	        showDetails(position);
 	    }
 
@@ -398,6 +423,12 @@ public class MainActivity extends FragmentActivity implements
 			Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
 	  }
 	    
+	  
+	  /** ***************************************************************************
+	   * Download Task
+	   * @author test
+	   *
+	   */
 		private class DownloadTask extends AsyncTask<String, Void, JSONArray> {
 			private Context ctx;
 			public DownloadTask(Context context){
@@ -428,32 +459,9 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			protected void onPostExecute(JSONArray results) {
-				ArrayList<String> stringArrayList = new ArrayList<String>();
-				showToast("onPostExecute");
-				for (int i = 0; i<results.length(); i++ ) {
-					try {
-						String value = results.getJSONObject(i).getString("name");
-						stringArrayList.add( value );
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				playList = stringArrayList.toArray(new String[stringArrayList.size()]);
-				onJSONReady(results);
-				songIndex = 0;
-				TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
-				
 
-				if(fragment != null)  // could be null if not instantiated yet
-				{
-					 fragment.setListAdapter(new ArrayAdapter<String>(this.ctx, android.R.layout.simple_list_item_activated_1, playList));
-//					 View fragmentView;
-//					 if( (fragmentView = fragment.getView()) != null ) 
-//					 {
-//					 
-//					 }
-				}
+				onJSONReady(results);
+
 			}
 		}
 
