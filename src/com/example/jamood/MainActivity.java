@@ -197,7 +197,7 @@ public class MainActivity extends FragmentActivity implements
 //			else {
 //				DummySectionFragment fragment = new DummySectionFragment();
 				Bundle args = new Bundle();
-				args.putInt( DummySectionFragment.ARG_SECTION_NUMBER, position + 1 );
+				args.putInt( "section_number", position + 1 );
 				
 				fragment.setArguments(args);
 //			}
@@ -231,23 +231,22 @@ public class MainActivity extends FragmentActivity implements
 	 * A dummy fragment representing a section of the app, but that simply
 	 * displays dummy text.
 	 */
+	
 	public static class DummySectionFragment extends Fragment {
 		/**
 		 * The fragment argument representing the section number for this
 		 * fragment.
 		 */
+	
 		public static final String ARG_SECTION_NUMBER = "section_number";
 
 		public DummySectionFragment() {
 		}
 
 		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main_dummy,
-					container, false);
-			TextView dummyTextView = (TextView) rootView
-					.findViewById(R.id.section_label);
+		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_titles_layout, container, false);
+			TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
 			dummyTextView.setText( "Refreshing..." );
 			//currentSong != null ? currentSong :  Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER))
 			
@@ -255,6 +254,7 @@ public class MainActivity extends FragmentActivity implements
 			return rootView;
 		}
 	}
+
 
 	public static class TitlesFragment extends ListFragment {
 	    boolean mDualPane;
@@ -283,7 +283,29 @@ public class MainActivity extends FragmentActivity implements
 //	            // Make sure our UI is in the correct state.
 //	            showDetails(mCurCheckPosition);
 //	        }
+	        
+	        /* TODO List CONTENTS FOOTER */
+//	        View footer = getLayoutInflater(savedInstanceState).inflate(R.layout.player, null);
+//	        ListView ls = getListView(); //(ListView) View.findViewById(android.R.id.list);
+//	        ls.addFooterView(footer);
 	    }
+/*    
+	    @Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_titles_layout, container, false);
+//			TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
+//			dummyTextView.setText( "Refreshing..." );
+			//currentSong != null ? currentSong :  Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER))
+			
+			
+			return rootView;
+		}
+*/
+	    @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) { 
+            View view = inflater.inflate(R.layout.main, null);
+            return view;
+        }
 
 	    @Override
 	    public void onSaveInstanceState(Bundle outState) {
