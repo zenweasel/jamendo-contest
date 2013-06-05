@@ -24,6 +24,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -37,14 +38,17 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements
-		ActionBar.TabListener {
+		ActionBar.TabListener, OnCompletionListener, OnClickListener {
 	
 	static final String CLIENT_ID = "80c1f631";
 	static String currentTAG = "sad";
@@ -158,36 +162,35 @@ public class MainActivity extends FragmentActivity implements
 	public void playCurrentSong() {
 		JSONObject oneObject = null;
 		String audioURL = null, audioTitle = null;
-		
-		try {
-			// TODO: может быть и null
-			oneObject = results.getJSONObject(songIndex);
-		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 
 		try {
+			// Extract Song URL
+			oneObject = results.getJSONObject(songIndex);
 			audioURL = oneObject.getString("audio");
 			audioTitle = oneObject.getString("name");
 			currentSong = audioTitle;
 			ActionBar ab = getActionBar();
 			ab.setTitle(audioTitle);
 			
+			// Update List UI
 			ListView lv = (ListView) findViewById(android.R.id.list);
 			lv.setItemChecked(songIndex, true);
-			showToast(currentSong);
+			
+			// Play Song
+			playAudio(audioURL);
+			
+			// Update Player UI
+			updateButtonPlayState();
 
 		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
+			showToast(getString(R.string.JSONException));
 			e1.printStackTrace();
 		}
-		try {
-			playAudio(audioURL);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
+		catch (Exception e) {
+			showToast(getString(R.string.MediaPlayerException));
 			e.printStackTrace();
 		}
+
 	}
 	
 	@Override
@@ -307,6 +310,14 @@ public class MainActivity extends FragmentActivity implements
 //	        View footer = getLayoutInflater(savedInstanceState).inflate(R.layout.player, null);
 //	        ListView ls = getListView(); //(ListView) View.findViewById(android.R.id.list);
 //	        ls.addFooterView(footer);
+	        ImageButton btnPlay = (ImageButton) getActivity().findViewById(R.id.btnPlay);
+	        btnPlay.setOnClickListener((MainActivity) getActivity());
+	        
+	        ImageButton btnNext = (ImageButton) getActivity().findViewById(R.id.btnNext);
+	        btnNext.setOnClickListener((MainActivity) getActivity());
+	        
+	        ImageButton btnPrev = (ImageButton) getActivity().findViewById(R.id.btnPrev);
+	        btnPrev.setOnClickListener((MainActivity) getActivity());
 	    }
 /*    
 	    @Override
@@ -398,16 +409,18 @@ public class MainActivity extends FragmentActivity implements
 	 */
 	
 	  private void playAudio(String url) throws Exception
-	    {
+	  {
 	        killMediaPlayer();
 
 	        mediaPlayer = new MediaPlayer();
 	        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+	        mediaPlayer.setOnCompletionListener(this);
 	        mediaPlayer.setDataSource(url);
 	        mediaPlayer.prepare();
 	        mediaPlayer.start();
-	    }
-	  
+			updateButtonPlayState();
+	  }
+	  	  
 	  private void killMediaPlayer() {
 	        if(mediaPlayer!=null) {
 	            try {
@@ -459,9 +472,7 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			protected void onPostExecute(JSONArray results) {
-
 				onJSONReady(results);
-
 			}
 		}
 
@@ -480,11 +491,68 @@ public class MainActivity extends FragmentActivity implements
 			currentTAG = TAGS_TABS[ tab.getPosition() ];
 			currentTab = tab.getPosition();
 			reloadTag();
+			
 		}
 
 		@Override
 		public void onTabUnselected(Tab tab, android.app.FragmentTransaction ft) {
 			// TODO Auto-generated method stub
 			
+		}
+
+		
+		@Override
+		public void onCompletion(MediaPlayer mp) {
+			nextSong();
+			playCurrentSong();
+		}
+
+		private void nextSong() {
+			if (songIndex+1 < playList.length) {
+				songIndex++;
+			}
+			else {
+				songIndex = 0;
+			}
+		}
+		
+		private void prevSong() {
+			if (songIndex-1 > 0 ) {
+				songIndex--;
+			}
+			else {
+				songIndex = playList.length-1;
+			}
+		}
+
+		@Override
+		public void onClick(View v) {
+			if(v.getId() == R.id.btnPlay){
+				if(!mediaPlayer.isPlaying()){
+					mediaPlayer.start();
+				}else {
+					mediaPlayer.pause();
+				}
+				updateButtonPlayState();
+			}
+			else if(v.getId() == R.id.btnNext){
+				nextSong();
+				mediaPlayer.stop();
+				playCurrentSong();
+			}
+			else if(v.getId() == R.id.btnPrev){
+				prevSong();
+				mediaPlayer.stop();
+				playCurrentSong();
+			}
+		}
+
+		private void updateButtonPlayState() {
+			ImageButton btnPlay = (ImageButton) findViewById(R.id.btnPlay);
+			if(!mediaPlayer.isPlaying()){
+				btnPlay.setImageResource(R.drawable.btn_play);
+			}else {
+				btnPlay.setImageResource(R.drawable.btn_pause);
+			}
 		}
 }

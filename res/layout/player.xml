@@ -11,19 +11,20 @@
         android:id="@+id/player_footer_bg"
         android:layout_width="fill_parent"
         android:layout_height="120dp"
-        
-        android:gravity="center"
-        android:paddingBottom="0dp" >
+        android:background="@drawable/bg_pattern_fill"
+        android:gravity="center" >
     	
         <!-- Player Buttons -->
-        <LinearLayout 
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:background="@layout/rounded_corner"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingLeft="10dp"
-            android:paddingRight="10dp">
+            android:paddingRight="10dp" >
+
             <!-- Previous Button -->
 			<ImageButton 
                 android:id="@+id/btnPrev"
@@ -39,8 +40,8 @@
                 android:id="@+id/btnPlay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
                 android:background="@null"
                 android:src="@drawable/btn_play" />
 
