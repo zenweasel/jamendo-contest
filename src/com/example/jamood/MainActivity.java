@@ -1,61 +1,42 @@
 package com.example.jamood;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.example.jamood.TrackListAdapter.ViewHolder;
-
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.content.Context;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import android.opengl.Visibility;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements
 		ActionBar.TabListener, OnCompletionListener, OnClickListener {
 	
-	static final String CLIENT_ID = "80c1f631";
 	static String currentTAG = "calm";
 	static final Integer LIMIT = 10;
 	static final String TRACKS_URL = "http://api.jamendo.com/v3.0/tracks/?format=json&groupby=artist_id";
@@ -88,6 +69,7 @@ public class MainActivity extends FragmentActivity implements
 	ViewPager mViewPager;
 
 	private String tracksURL(){
+		String CLIENT_ID = ((JamoodApplication) this.getApplication()).CLIENT_ID;
 		String ret = TRACKS_URL+"&client_id="+CLIENT_ID + "&tags="+ currentTAG + "&limit="+LIMIT;
 		//&speed=medium+high+veryhigh
 		return ret;
