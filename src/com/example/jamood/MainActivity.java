@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.content.Context;
-import android.support.v4.app.ListFragment;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -24,13 +23,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -48,8 +48,11 @@ public class MainActivity extends FragmentActivity implements
     Map<String, String[]> jsonMap1 = new HashMap<String, String[]>(  );
     
 	static String currentSong = null;
+	private String currentArt;
+	
 	private Integer songIndex = 0;
 	private Integer currentTab = 0;
+	
 	
 	JSONArray results;
 	static JSONObject[] playList = {};
@@ -145,6 +148,8 @@ public class MainActivity extends FragmentActivity implements
         
         ImageButton btnPrev = (ImageButton) findViewById(R.id.btnPrev);
         btnPrev.setOnClickListener(this);
+        
+        ((ImageView) findViewById(R.id.albumArt)).setOnClickListener(this);
     }
 	
 	private void reloadTag() {
@@ -182,13 +187,15 @@ public class MainActivity extends FragmentActivity implements
 
 	public void playCurrentSong() {
 		JSONObject oneObject = null;
-		String audioURL = null, audioTitle = null;
+		String audioURL = null, audioTitle = null, albumArt=null;
 
 		try {
 			// Extract Song URL
 			oneObject = results.getJSONObject(songIndex);
 			audioURL = oneObject.getString("audio");
 			audioTitle = oneObject.getString("name");
+			albumArt = oneObject.getString("album_image");
+			
 			currentSong = audioTitle;
 			ActionBar ab = getActionBar();
 			ab.setTitle(audioTitle);
@@ -201,6 +208,18 @@ public class MainActivity extends FragmentActivity implements
 				ListView lv = fragment.getListView();
 				lv.setItemChecked(songIndex, true);
 				lv.setVisibility(View.VISIBLE);
+			}
+
+			ImageView artView = (ImageView) findViewById(R.id.albumArt);
+			if (albumArt!=null){
+				new DownloadImageTask(artView,  (ImageView) findViewById(R.id.albumArtLarge)).execute(albumArt);
+				artView.setVisibility(View.VISIBLE);
+				currentArt = albumArt;
+			}
+			else {
+				albumArt = null;
+				artView.setVisibility(View.INVISIBLE);
+				((ImageView)findViewById(R.id.albumArt)).setImageResource( R.drawable.pattern_water );
 			}
 			
 			// Play Song
@@ -217,9 +236,8 @@ public class MainActivity extends FragmentActivity implements
 			showToast(getString(R.string.MediaPlayerException));
 			e.printStackTrace();
 		}
-
 	}
-	
+	/*
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -227,6 +245,7 @@ public class MainActivity extends FragmentActivity implements
 		return true;
 	}
 
+	*/
 
 	/**
 	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -485,15 +504,15 @@ public class MainActivity extends FragmentActivity implements
 				currentTAG = tagValue;
 			}
 			
-			currentTab = tab.getPosition();
-
 			TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
 			if(fragment != null)  // could be null if not instantiated yet
 			{
 				ListView lv = fragment.getListView();
 				lv.setVisibility(View.INVISIBLE);
+				__setArtVisible(false);
 			}
 			
+			currentTab = tab.getPosition();			
 			reloadTag();
 		}
 
@@ -538,15 +557,56 @@ public class MainActivity extends FragmentActivity implements
 				}
 				updateButtonPlayState();
 			}
-			else if(v.getId() == R.id.btnNext){
+			else if(v.getId() == R.id.btnNext) {
 				nextSong();
 				mediaPlayer.stop();
 				playCurrentSong();
 			}
-			else if(v.getId() == R.id.btnPrev){
+			else if(v.getId() == R.id.btnPrev) {
 				prevSong();
 				mediaPlayer.stop();
 				playCurrentSong();
+			}
+			else if (v.getId() == R.id.albumArt) {
+				
+				
+				TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
+				if(fragment != null)  // could be null if not instantiated yet
+				{
+					ListView lv = fragment.getListView();
+					ImageView large = (ImageView)findViewById(R.id.albumArtLarge);
+					
+					if (large.getVisibility() != View.VISIBLE) {
+						//Drawable d = ((ImageView)findViewById(R.id.albumArt)).getDrawable();						
+						//large.setBackground(d);
+						
+//						new DownloadImageTask((ImageView) findViewById(R.id.albumArtLarge)).execute(currentArt);
+						
+						__setArtVisible(true);
+					}
+					else {
+						
+						__setArtVisible(false);
+						
+					}
+				}
+			}
+		}
+		
+		private void __setArtVisible(boolean visible){
+			TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
+			if(fragment != null)  // could be null if not instantiated yet
+			{
+				ListView lv = fragment.getListView();
+				ImageView large = (ImageView)findViewById(R.id.albumArtLarge);
+				if (visible) {
+					lv.setVisibility(View.GONE);
+					large.setVisibility(View.VISIBLE);
+				}
+				else {
+					lv.setVisibility(View.VISIBLE);
+					large.setVisibility(View.GONE);
+				}
 			}
 		}
 
