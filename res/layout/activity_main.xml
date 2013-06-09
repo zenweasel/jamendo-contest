@@ -15,6 +15,19 @@
 		    android:layout_weight="1"
 		    tools:context=".MainActivity" />
 
+		<ImageView
+		    android:id="@+id/albumArtLarge"
+		    android:layout_width="match_parent"
+		    android:layout_height="400dp"
+		    android:layout_gravity="center"
+		    android:layout_weight="1"
+		    android:scaleType="fitXY"
+		    android:visibility="gone" />
+		       
 		<include layout="@layout/player"/>
 
 </LinearLayout>
+
+<!-- 
+ android:visibility="gone"
+ -->
