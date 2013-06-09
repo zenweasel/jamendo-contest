@@ -148,6 +148,9 @@ public class MainActivity extends FragmentActivity implements
 					.setTabListener(this));
 		}
 		
+//		int savedTag = savedInstanceState.getInt("current_tag", 0);
+//		Log.d("jamood", "savetag: "+savedTag);
+//		mViewPager.setCurrentItem( savedTag );
 		__initPlayerButtons();
 	}
 	
@@ -171,7 +174,7 @@ public class MainActivity extends FragmentActivity implements
 		results = r;
 		
 		ArrayList<JSONObject> stringArrayList = new ArrayList<JSONObject>();
-		showToast("onPostExecute");
+
 		for (int i = 0; i<results.length(); i++ ) {
 			try {
 				JSONObject value = results.getJSONObject(i);//.getString("name");
@@ -486,16 +489,20 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		public void onTabSelected(Tab tab, android.app.FragmentTransaction ft) {
-
-			showToast("onTabSelected");
 			mViewPager.setCurrentItem( tab.getPosition() );
 			String tagValue = TAGS_TABS[ tab.getPosition() ];
 			String[] tagMaps = jsonMap1.get(tagValue);
 			
-			Random rgenerator = new Random();
-			int randTag = rgenerator.nextInt(tagMaps.length);
+
+			if (tagMaps != null && tagMaps.length>0) {
+				Random rgenerator = new Random();
+				int randTag = rgenerator.nextInt(tagMaps.length);
+				currentTAG = tagMaps[randTag];
+			}
+			else {
+				currentTAG = tagValue;
+			}
 			
-			currentTAG = tagMaps.length > 0 ? tagMaps[randTag] : tagValue ;
 			currentTab = tab.getPosition();
 
 			TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
@@ -568,5 +575,25 @@ public class MainActivity extends FragmentActivity implements
 			}else {
 				btnPlay.setImageResource(R.drawable.btn_pause);
 			}
+		}
+		
+		@Override
+		public void onSaveInstanceState(Bundle savedInstanceState) {
+		  super.onSaveInstanceState(savedInstanceState);
+		  // Save UI state changes to the savedInstanceState.
+		  // This bundle will be passed to onCreate if the process is
+		  // killed and restarted.
+		  savedInstanceState.putInt("current_tab", currentTab);
+
+		}
+
+		@Override
+		public void onRestoreInstanceState(Bundle savedInstanceState) {
+		  super.onRestoreInstanceState(savedInstanceState);
+		  // Restore UI state from the savedInstanceState.
+		  // This bundle has also been passed to onCreate.
+
+		  int myInt = savedInstanceState.getInt("current_tab");
+		  currentTab = myInt;
 		}
 }
