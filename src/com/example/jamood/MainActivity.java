@@ -6,7 +6,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -25,6 +28,7 @@ import android.support.v4.app.ListFragment;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.opengl.Visibility;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -33,6 +37,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,13 +56,16 @@ public class MainActivity extends FragmentActivity implements
 		ActionBar.TabListener, OnCompletionListener, OnClickListener {
 	
 	static final String CLIENT_ID = "80c1f631";
-	static String currentTAG = "sad";
+	static String currentTAG = "calm";
 	static final Integer LIMIT = 10;
-	static final String TRACKS_URL = "http://api.jamendo.com/v3.0/tracks/?format=json&speed=medium+high+veryhigh&groupby=artist_id";
-	static final String[] TAGS_TABS = {"happy", "sad", "funky"};
+	static final String TRACKS_URL = "http://api.jamendo.com/v3.0/tracks/?format=json&groupby=artist_id";
+	static final String[] TAGS_TABS = {"calm", "easy", "yoga", "happy", "sad", "space", "funky", "disco", "triphop","hiphop", "rock", "sexy","romantic"};
 		    private MediaPlayer mediaPlayer;
 		    private int playbackPosition=0;
 		    
+		    
+    Map<String, String[]> jsonMap1 = new HashMap<String, String[]>(  );
+    
 	static String currentSong = null;
 	private Integer songIndex = 0;
 	private Integer currentTab = 0;
@@ -81,12 +89,28 @@ public class MainActivity extends FragmentActivity implements
 
 	private String tracksURL(){
 		String ret = TRACKS_URL+"&client_id="+CLIENT_ID + "&tags="+ currentTAG + "&limit="+LIMIT;
+		//&speed=medium+high+veryhigh
 		return ret;
+	}
+	
+	private void __initMaps(){
+		String[] calmTags = { "slow","melodic", "piano"};
+		jsonMap1.put("calm", calmTags);
+		String[] easyTags = { "easylistening", "chillout" };
+		jsonMap1.put("easy", easyTags);
+		
+		String[] spaceTags = {  "relaxing", "health", "wellness", "newage", "ambient" };
+		jsonMap1.put("space", spaceTags);
+		
+		String[] yogaTags = {  "meditation", "wellness", "slow", "ethno", "xylophone", "meditative" };
+		jsonMap1.put("yoga", yogaTags);
+		
 	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		__initMaps();
 		setContentView(R.layout.activity_main);
 
 		// Set up the action bar.
@@ -124,8 +148,19 @@ public class MainActivity extends FragmentActivity implements
 					.setTabListener(this));
 		}
 		
-//		reloadTag();
+		__initPlayerButtons();
 	}
+	
+    private void __initPlayerButtons(){
+        ImageButton btnPlay = (ImageButton) findViewById(R.id.btnPlay);
+        btnPlay.setOnClickListener(this);
+        
+        ImageButton btnNext = (ImageButton)findViewById(R.id.btnNext);
+        btnNext.setOnClickListener(this);
+        
+        ImageButton btnPrev = (ImageButton) findViewById(R.id.btnPrev);
+        btnPrev.setOnClickListener(this);
+    }
 	
 	private void reloadTag() {
 		DownloadTask task = new DownloadTask(this);
@@ -154,6 +189,7 @@ public class MainActivity extends FragmentActivity implements
 			 fragment.setListAdapter(new TrackListAdapter(this, playList));
 //			 ((TrackListAdapter) fragment.getListView().getAdapter()).setSelectedItem(0);
 //			 fragment.getListView().setItemChecked(songIndex, true);
+			 
 		}
 		
 		playCurrentSong();
@@ -173,8 +209,14 @@ public class MainActivity extends FragmentActivity implements
 			ab.setTitle(audioTitle);
 			
 			// Update List UI
-			ListView lv = (ListView) findViewById(android.R.id.list);
-			lv.setItemChecked(songIndex, true);
+			TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
+			if(fragment != null)  // could be null if not instantiated yet
+			{
+//				ListView lv = (ListView) findViewById(android.R.id.list);
+				ListView lv = fragment.getListView();
+				lv.setItemChecked(songIndex, true);
+				lv.setVisibility(View.VISIBLE);
+			}
 			
 			// Play Song
 			playAudio(audioURL);
@@ -310,14 +352,7 @@ public class MainActivity extends FragmentActivity implements
 //	        View footer = getLayoutInflater(savedInstanceState).inflate(R.layout.player, null);
 //	        ListView ls = getListView(); //(ListView) View.findViewById(android.R.id.list);
 //	        ls.addFooterView(footer);
-	        ImageButton btnPlay = (ImageButton) getActivity().findViewById(R.id.btnPlay);
-	        btnPlay.setOnClickListener((MainActivity) getActivity());
-	        
-	        ImageButton btnNext = (ImageButton) getActivity().findViewById(R.id.btnNext);
-	        btnNext.setOnClickListener((MainActivity) getActivity());
-	        
-	        ImageButton btnPrev = (ImageButton) getActivity().findViewById(R.id.btnPrev);
-	        btnPrev.setOnClickListener((MainActivity) getActivity());
+
 	    }
 /*    
 	    @Override
@@ -485,13 +520,36 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		public void onTabSelected(Tab tab, android.app.FragmentTransaction ft) {
-			// TODO Auto-generated method stub
+
 			showToast("onTabSelected");
 			mViewPager.setCurrentItem( tab.getPosition() );
-			currentTAG = TAGS_TABS[ tab.getPosition() ];
-			currentTab = tab.getPosition();
-			reloadTag();
+			String tagValue = TAGS_TABS[ tab.getPosition() ];
+			String[] tagMaps = jsonMap1.get(tagValue);
 			
+			Random rgenerator = new Random();
+			int randTag = rgenerator.nextInt(tagMaps.length);
+			
+			currentTAG = tagMaps.length > 0 ? tagMaps[randTag] : tagValue ;
+			currentTab = tab.getPosition();
+
+			
+			TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
+			if(fragment != null)  // could be null if not instantiated yet
+			{
+				showToast("Need be there");
+//				fragment.setListShown(false);
+				ListView lv = fragment.getListView();
+				lv.setVisibility(View.INVISIBLE);
+				Log.d("jamood", "lv:"+lv);
+				
+//				if (lv != null) {
+//					fragment.setListShown(false);
+					
+//				}
+
+			}
+			
+			reloadTag();
 		}
 
 		@Override
