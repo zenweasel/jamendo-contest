@@ -274,49 +274,15 @@ public class MainActivity extends FragmentActivity implements
 		@Override
 		public int getCount() {
 			// Show 3 total pages.
-			return 3;
+			return TAGS_TABS.length;
 		}
 
 		@Override
 		public CharSequence getPageTitle(int position) {
 			Locale l = Locale.getDefault();
-			switch (position) {
-			case 0:
-				return TAGS_TABS[0].toUpperCase(l);//getString(R.string.title_section1).toUpperCase(l);
-			case 1:
-				return TAGS_TABS[1].toUpperCase(l);//getString(R.string.title_section2).toUpperCase(l);
-			case 2:
-				return TAGS_TABS[2].toUpperCase(l);//getString(R.string.title_section3).toUpperCase(l);
-			}
-			return null;
+			return TAGS_TABS[position].toUpperCase(l);
 		}
 	}
-
-	/**
-	 * A dummy fragment representing a section of the app, but that simply
-	 * displays dummy text.
-	 */
-	/*
-	public static class DummySectionFragment extends Fragment {
-
-	
-		public static final String ARG_SECTION_NUMBER = "section_number";
-
-		public DummySectionFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_titles_layout, container, false);
-			TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
-			dummyTextView.setText( "Refreshing..." );
-			//currentSong != null ? currentSong :  Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER))
-			
-			
-			return rootView;
-		}
-	}
-*/
 
 	public static class TitlesFragment extends ListFragment {
 	    boolean mDualPane;
@@ -532,21 +498,11 @@ public class MainActivity extends FragmentActivity implements
 			currentTAG = tagMaps.length > 0 ? tagMaps[randTag] : tagValue ;
 			currentTab = tab.getPosition();
 
-			
 			TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
 			if(fragment != null)  // could be null if not instantiated yet
 			{
-				showToast("Need be there");
-//				fragment.setListShown(false);
 				ListView lv = fragment.getListView();
 				lv.setVisibility(View.INVISIBLE);
-				Log.d("jamood", "lv:"+lv);
-				
-//				if (lv != null) {
-//					fragment.setListShown(false);
-					
-//				}
-
 			}
 			
 			reloadTag();
