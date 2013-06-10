@@ -1,4 +1,4 @@
-package com.example.jamood;
+package com.rapptors.jamood;
 
 import org.json.JSONException;
 import org.json.JSONObject;

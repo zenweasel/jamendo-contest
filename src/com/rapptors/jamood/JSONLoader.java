@@ -1,4 +1,4 @@
-package com.example.jamood;
+package com.rapptors.jamood;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.example.jamood;
+package com.rapptors.jamood;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +10,8 @@ import java.util.Random;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.rapptors.jamood.R;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
