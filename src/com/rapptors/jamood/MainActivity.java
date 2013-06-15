@@ -40,7 +40,7 @@ public class MainActivity extends FragmentActivity implements
 		ActionBar.TabListener, OnCompletionListener, OnClickListener {
 	
 	static String currentTAG = "calm";
-	static final Integer LIMIT = 10;
+	static final Integer LIMIT = 30;
 	static final String TRACKS_URL = "http://api.jamendo.com/v3.0/tracks/?format=json&groupby=artist_id";
 	static final String[] TAGS_TABS = {"calm", "easy", "yoga", "happy", "sad", "space", "funky", "disco", "triphop","hiphop", "rock", "sexy","romantic"};
 		    private MediaPlayer mediaPlayer;
@@ -155,6 +155,9 @@ public class MainActivity extends FragmentActivity implements
     }
 	
 	private void reloadTag() {
+		if (! __isVisibleArt()) {
+			__setLoadingVisible(true);
+		}
 		DownloadTask task = new DownloadTask(this);
 		task.execute(new String[] { tracksURL() });
 	}
@@ -173,6 +176,9 @@ public class MainActivity extends FragmentActivity implements
 				e.printStackTrace();
 			}
 		}
+		
+		__setLoadingVisible(false);
+		
 		playList = stringArrayList.toArray(new JSONObject[stringArrayList.size()]);
 		songIndex = 0;
 		TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
@@ -595,6 +601,11 @@ public class MainActivity extends FragmentActivity implements
 			}
 		}
 		
+		private boolean __isVisibleArt(){
+			ImageView large = (ImageView)findViewById(R.id.albumArtLarge);
+			return large.getVisibility() == View.VISIBLE ? true : false;
+		}
+		
 		private void __setArtVisible(boolean visible){
 			TitlesFragment fragment = (TitlesFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":"+currentTab);
 			if(fragment != null)  // could be null if not instantiated yet
@@ -610,6 +621,10 @@ public class MainActivity extends FragmentActivity implements
 					large.setVisibility(View.GONE);
 				}
 			}
+		}
+		
+		private void __setLoadingVisible(boolean visible) {
+			findViewById(R.id.loading).setVisibility( visible ? View.VISIBLE : View.GONE  );
 		}
 
 		private void updateButtonPlayState() {

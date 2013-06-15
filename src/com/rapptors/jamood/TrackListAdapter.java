@@ -21,7 +21,8 @@ public class TrackListAdapter extends ArrayAdapter<JSONObject> {
 		  public boolean markDefault = true;
 
 		  static class ViewHolder {
-			    public TextView text;
+			    public TextView title;
+			    public TextView author;
 //			    public ImageView image;
 		  }
 
@@ -40,16 +41,18 @@ public class TrackListAdapter extends ArrayAdapter<JSONObject> {
 		    
 		    View rowView = convertView;
 		    if (rowView == null) {
-		      rowView = inflater.inflate(android.R.layout.simple_list_item_activated_1, parent, false);
+		      rowView = inflater.inflate(android.R.layout.simple_list_item_activated_2, parent, false);
 		      ViewHolder viewHolder = new ViewHolder();
-		      viewHolder.text = (TextView) rowView.findViewById(android.R.id.text1);
+		      viewHolder.title = (TextView) rowView.findViewById(android.R.id.text1);
+		      viewHolder.author = (TextView) rowView.findViewById(android.R.id.text2);
 		      rowView.setTag(viewHolder);
 		    }
 
 		    ViewHolder holder = (ViewHolder) rowView.getTag();
 		    JSONObject jsonObj = values[position];
 		    try {
-		    	holder.text.setText(jsonObj.getString("name"));
+		    	holder.title.setText(jsonObj.getString("name"));
+		    	holder.author.setText(jsonObj.getString("artist_name"));
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

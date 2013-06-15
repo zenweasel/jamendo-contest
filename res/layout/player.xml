@@ -24,8 +24,8 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@drawable/pattern_water"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:visibility="invisible"
             
              />
