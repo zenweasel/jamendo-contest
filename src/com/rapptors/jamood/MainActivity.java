@@ -19,6 +19,8 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -28,6 +30,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -139,6 +143,9 @@ public class MainActivity extends FragmentActivity implements
 //		Log.d("jamood", "savetag: "+savedTag);
 //		mViewPager.setCurrentItem( savedTag );
 		__initPlayerButtons();
+		
+
+		
 	}
 	
     private void __initPlayerButtons(){
@@ -155,11 +162,18 @@ public class MainActivity extends FragmentActivity implements
     }
 	
 	private void reloadTag() {
-		if (! __isVisibleArt()) {
-			__setLoadingVisible(true);
+		if ( !isOnline()){
+			InetDialogFragment ad = new InetDialogFragment();
+    	  	ad.show(getSupportFragmentManager(), "");
+            
 		}
-		DownloadTask task = new DownloadTask(this);
-		task.execute(new String[] { tracksURL() });
+		else {
+			if (! __isVisibleArt()) {
+				__setLoadingVisible(true);
+			}
+			DownloadTask task = new DownloadTask(this);
+			task.execute(new String[] { tracksURL() });
+		}
 	}
 	
 	public void onJSONReady( JSONArray r ){ //JSONArray results
@@ -245,16 +259,37 @@ public class MainActivity extends FragmentActivity implements
 			e.printStackTrace();
 		}
 	}
-	/*
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+      switch (item.getItemId()) {
+      case R.id.action_about:
+    	  	AboutDialogFragment ad = new AboutDialogFragment();
+    	  	ad.show(getSupportFragmentManager(), "");
+            
+            return true;
 
-	*/
+      default:
+            return super.onOptionsItemSelected(item);
+      }
+  }
 
+	public boolean isOnline() {
+	    ConnectivityManager cm =
+	        (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo netInfo = cm.getActiveNetworkInfo();
+	    if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+	        return true;
+	    }
+	    return false;
+	}
 	/**
 	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
 	 * one of the sections/tabs/pages.
